@@ -39,4 +39,64 @@ flowchart LR
 
 ## Stanje projekta
 
-Detaljan opis domena i kôd dodaju se tokom semestra, po kontrolnim tačkama.
+Urađena je KT1: mobilna aplikacija i backoffice rade nad istim domenskim paketom i paketom sa Blocovima. Podaci su lažni i čuvaju se u memoriji; svaka aplikacija ima svoje podatke i oni se ne sinhronizuju. Server, baza i prijava korisnika (KT2), rad bez mreže (KT3) i javni veb (KT4) dolaze kasnije.
+
+| Folder | Šta je u njemu |
+| --- | --- |
+| `packages/domain` | čist Dart: radni nalog, stanja (sealed), `dozvoljenPrelaz`, akcije i pravila koja vraćaju `Rezultat` sa greškom kao tipom |
+| `packages/blocs` | čist Dart: port `NalogRepository`, `MojiNaloziBloc` (klijent) i `TablaNalogaBloc` (osoblje) |
+| `apps/mobile` | Flutter za Android i iOS, uloga klijent (Ana Jovanović) |
+| `apps/backoffice` | Flutter za Windows, macOS, Linux i veb, uloga serviser (Marko Marković) |
+
+Lažna implementacija porta je u `lib/data/lazni_nalozi.dart` svake aplikacije i bira se samo u `lib/dependencies.dart`.
+
+## Pokretanje
+
+Potreban je Flutter 3.47 (Dart 3.13 ili noviji). Iz korena repozitorijuma:
+
+```sh
+flutter pub get
+```
+
+Mobilna aplikacija, na Android emulatoru ili telefonu:
+
+```sh
+cd apps/mobile
+flutter run
+```
+
+Backoffice, na desktopu ili u pregledaču:
+
+```sh
+cd apps/backoffice
+flutter run -d windows    # ili -d macos, -d linux, -d chrome
+```
+
+Provere iz korena:
+
+```sh
+flutter analyze
+cd packages/domain && dart test
+cd packages/blocs && dart test
+cd apps/mobile && flutter test
+cd apps/backoffice && flutter test
+```
+
+Za demonstraciju stanja ekrana obe aplikacije imaju meni (tri tačke gore desno): „Simuliraj grešku sledećeg zahteva“ i „Prikaži prazan odgovor“. Lažni podaci kasne oko 0,7 s, pa se vidi i učitavanje.
+
+## Prečice u backoffice-u
+
+| Taster | Radnja |
+| --- | --- |
+| ↑ / ↓ ili K / J | prethodni / sledeći nalog |
+| Esc | poništi izbor |
+| P | preuzmi nalog |
+| O | pošalji ponudu |
+| S | označi spreman za preuzimanje |
+| I | izdaj uređaj klijentu |
+| X | otkaži nalog |
+| R | osveži naloge |
+| ? ili F1 | pregled prečica |
+| Tab | kretanje kroz dugmad |
+
+Ispod širine od 900 tačaka tabela postaje lista, a detalj izabranog naloga prelazi ispod liste; izbor ostaje isti.
