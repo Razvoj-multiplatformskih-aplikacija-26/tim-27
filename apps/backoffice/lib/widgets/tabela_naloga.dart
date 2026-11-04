@@ -30,7 +30,12 @@ class TabelaNaloga extends StatefulWidget {
 class _TabelaNalogaState extends State<TabelaNaloga> {
   final _skrol = ScrollController();
 
-  double get _visinaReda => widget.uska ? 76 : 52;
+  /// Tabela kojoj je ostalo manje od ove širine (npr. kad je otvoren bočni panel) crta se kao lista.
+  static const najmanjaSirinaTabele = 760.0;
+
+  bool _kaoLista = false;
+
+  double get _visinaReda => _kaoLista ? 76 : 52;
 
   @override
   void initState() {
@@ -69,6 +74,15 @@ class _TabelaNalogaState extends State<TabelaNaloga> {
 
   @override
   Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, ogranicenja) {
+        _kaoLista = widget.uska || ogranicenja.maxWidth < najmanjaSirinaTabele;
+        return _okvir(context);
+      },
+    );
+  }
+
+  Widget _okvir(BuildContext context) {
     final tema = Theme.of(context);
     final stanje = widget.stanje;
     return DecoratedBox(
@@ -83,7 +97,7 @@ class _TabelaNalogaState extends State<TabelaNaloga> {
         borderRadius: BorderRadius.circular(11),
         child: Column(
           children: [
-            if (!widget.uska) const _Zaglavlje(),
+            if (!_kaoLista) const _Zaglavlje(),
             Expanded(
               child: ListView.builder(
                 controller: _skrol,
@@ -106,7 +120,7 @@ class _TabelaNalogaState extends State<TabelaNaloga> {
                           ),
                         ),
                         padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: widget.uska
+                        child: _kaoLista
                             ? _UskiRed(nalog: nalog, klijent: klijent)
                             : _SirokiRed(nalog: nalog, klijent: klijent, serviser: serviser),
                       ),
