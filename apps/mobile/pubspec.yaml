@@ -1,0 +1,29 @@
+name: mobile
+description: Reboot mobilna aplikacija za klijente servisa.
+publish_to: none
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.13.0
+resolution: workspace
+
+dependencies:
+  blocs:
+    path: ../../packages/blocs
+  domain:
+    path: ../../packages/domain
+  flutter:
+    sdk: flutter
+  flutter_bloc: 9.1.1
+  flutter_localizations:
+    sdk: flutter
+  go_router: 18.0.2
+
+dev_dependencies:
+  flutter_launcher_icons: 0.14.4
+  flutter_lints: 6.0.0
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
