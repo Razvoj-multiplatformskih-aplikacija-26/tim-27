@@ -84,6 +84,7 @@ final class TablaNalogaBloc extends Bloc<TablaNalogaEvent, TablaNalogaState> {
           klijenti: {for (final k in klijenti) k.id: k},
           serviseri: {for (final s in serviseri) s.id: s},
           akcije: {for (final n in sortirani) n.id: akcijeOsoblja(n, serviser: serviser, sviNalozi: sortirani)},
+          aktivnihPrijavljenog: brojAktivnihNaloga(serviser.id, sortirani),
           izabraniId: sortirani.any((n) => n.id == izabraniId) ? izabraniId : null,
           obavestenje: obavestenje,
         ),

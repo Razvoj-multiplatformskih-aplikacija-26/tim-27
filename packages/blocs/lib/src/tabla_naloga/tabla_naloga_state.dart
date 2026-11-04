@@ -30,6 +30,7 @@ final class TablaUcitana extends TablaNalogaState {
     required this.klijenti,
     required this.serviseri,
     required this.akcije,
+    required this.aktivnihPrijavljenog,
     this.izabraniId,
     this.nalogUToku,
     this.obavestenje,
@@ -41,6 +42,9 @@ final class TablaUcitana extends TablaNalogaState {
 
   /// Za svaki nalog akcije koje prijavljeni član osoblja sme da uradi (računa domen).
   final Map<NalogId, Set<AkcijaOsoblja>> akcije;
+
+  /// Koliko aktivnih naloga ima prijavljeni serviser (najviše 5).
+  final int aktivnihPrijavljenog;
   final NalogId? izabraniId;
   final NalogId? nalogUToku;
   final TablaObavestenje? obavestenje;
@@ -74,13 +78,23 @@ final class TablaUcitana extends TablaNalogaState {
     klijenti: klijenti,
     serviseri: serviseri,
     akcije: akcije,
+    aktivnihPrijavljenog: aktivnihPrijavljenog,
     izabraniId: izabraniId == null ? this.izabraniId : izabraniId(),
     nalogUToku: nalogUToku == null ? this.nalogUToku : nalogUToku(),
     obavestenje: obavestenje == null ? this.obavestenje : obavestenje(),
   );
 
   @override
-  List<Object?> get props => [nalozi, klijenti, serviseri, akcije, izabraniId, nalogUToku, obavestenje];
+  List<Object?> get props => [
+    nalozi,
+    klijenti,
+    serviseri,
+    akcije,
+    aktivnihPrijavljenog,
+    izabraniId,
+    nalogUToku,
+    obavestenje,
+  ];
 }
 
 sealed class TablaObavestenje extends Equatable {

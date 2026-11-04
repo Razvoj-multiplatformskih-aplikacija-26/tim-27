@@ -21,6 +21,9 @@ class OznakaStanja extends StatelessWidget {
       ),
       child: Text(
         nazivStanja(stanje),
+        maxLines: 1,
+        softWrap: false,
+        overflow: TextOverflow.ellipsis,
         style: Theme.of(context).textTheme.labelMedium?.copyWith(color: boja, fontWeight: FontWeight.w600),
       ),
     );
