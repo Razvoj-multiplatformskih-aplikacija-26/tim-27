@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'app.dart';
+import 'dependencies.dart';
+
 void main() {
-  runApp(
-    const MaterialApp(
-      home: Scaffold(body: Center(child: Text('Reboot mobile'))),
-    ),
-  );
+  runApp(RebootApp(zavisnosti: Zavisnosti.lazne()));
 }
