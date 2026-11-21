@@ -43,3 +43,27 @@ final class Serviser {
   @override
   String toString() => 'Serviser($ime, ${uloga.name})';
 }
+
+/// Uloga prijavljenog korisnika. Klijent radi u mobilnoj aplikaciji, osoblje u backoffice-u.
+enum Uloga { klijent, serviser, sefServisa }
+
+/// Korisnik sistema kako ga vidi prijava: ko je i u kojoj ulozi.
+@immutable
+final class Korisnik {
+  const Korisnik({required this.id, required this.ime, required this.uloga, this.telefon = ''});
+
+  final String id;
+  final String ime;
+  final Uloga uloga;
+  final String telefon;
+
+  @override
+  bool operator ==(Object other) =>
+      other is Korisnik && other.id == id && other.ime == ime && other.uloga == uloga && other.telefon == telefon;
+
+  @override
+  int get hashCode => Object.hash(id, ime, uloga, telefon);
+
+  @override
+  String toString() => 'Korisnik($ime, ${uloga.name})';
+}

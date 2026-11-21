@@ -65,18 +65,22 @@ final class OpisPonudeObavezan extends DomenskaGreska {
 
 @immutable
 final class PreviseAktivnihNaloga extends DomenskaGreska {
-  const PreviseAktivnihNaloga(this.aktivnih);
+  const PreviseAktivnihNaloga(this.aktivnih, {required this.granica});
 
   final int aktivnih;
 
-  @override
-  bool operator ==(Object other) => other is PreviseAktivnihNaloga && other.aktivnih == aktivnih;
+  /// Granica iz pravila u trenutku provere; poruka je prikazuje, pa server javlja i nju.
+  final int granica;
 
   @override
-  int get hashCode => Object.hash(PreviseAktivnihNaloga, aktivnih);
+  bool operator ==(Object other) =>
+      other is PreviseAktivnihNaloga && other.aktivnih == aktivnih && other.granica == granica;
 
   @override
-  String toString() => 'PreviseAktivnihNaloga($aktivnih)';
+  int get hashCode => Object.hash(PreviseAktivnihNaloga, aktivnih, granica);
+
+  @override
+  String toString() => 'PreviseAktivnihNaloga($aktivnih/$granica)';
 }
 
 final class RokZaOdgovorIstekao extends DomenskaGreska {

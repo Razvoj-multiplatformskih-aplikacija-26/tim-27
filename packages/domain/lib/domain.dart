@@ -9,4 +9,5 @@ export 'src/nalog/pravila.dart';
 export 'src/nalog/radni_nalog.dart';
 export 'src/nalog/stanje_naloga.dart';
 export 'src/nalog/uredjaj.dart';
+export 'src/prava.dart';
 export 'src/rezultat.dart';

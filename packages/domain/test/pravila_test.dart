@@ -34,7 +34,7 @@ void main() {
       expect(preuzmiNalog(slobodan, serviser: serviser, sviNalozi: [...aktivni(4), slobodan]).jeUspeh, isTrue);
       expect(
         preuzmiNalog(slobodan, serviser: serviser, sviNalozi: [...aktivni(5), slobodan]),
-        const Neuspeh<RadniNalog>(PreviseAktivnihNaloga(5)),
+        const Neuspeh<RadniNalog>(PreviseAktivnihNaloga(5, granica: 5)),
       );
     });
 

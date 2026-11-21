@@ -25,7 +25,7 @@ RadniNalog prijaviUredjaj({
 Rezultat<RadniNalog> preuzmiNalog(RadniNalog nalog, {required Serviser serviser, required List<RadniNalog> sviNalozi}) {
   if (nalog.serviserId != null) return const Neuspeh(NalogVecPreuzet());
   final aktivnih = brojAktivnihNaloga(serviser.id, sviNalozi);
-  if (aktivnih >= maksAktivnihNaloga) return Neuspeh(PreviseAktivnihNaloga(aktivnih));
+  if (aktivnih >= maksAktivnihNaloga) return Neuspeh(PreviseAktivnihNaloga(aktivnih, granica: maksAktivnihNaloga));
   return _predji(nalog, const Dijagnostika(), serviserId: serviser.id);
 }
 
