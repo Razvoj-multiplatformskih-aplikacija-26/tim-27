@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../tekst.dart';
+
 class PrikazUcitavanja extends StatelessWidget {
   const PrikazUcitavanja({super.key});
 
@@ -9,9 +11,10 @@ class PrikazUcitavanja extends StatelessWidget {
 }
 
 class PrikazGreske extends StatelessWidget {
-  const PrikazGreske({super.key, required this.onPonovo});
+  const PrikazGreske({super.key, required this.onPonovo, this.uzrok});
 
   final VoidCallback onPonovo;
+  final Object? uzrok;
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +28,10 @@ class PrikazGreske extends StatelessWidget {
             Icon(Icons.cloud_off_outlined, size: 64, color: tema.colorScheme.error),
             const SizedBox(height: 16),
             Text('Nalozi trenutno nisu dostupni.', style: tema.textTheme.titleMedium, textAlign: TextAlign.center),
+            if (uzrok case final uzrok?) ...[
+              const SizedBox(height: 8),
+              Text(porukaNeuspeha(uzrok), textAlign: TextAlign.center),
+            ],
             const SizedBox(height: 16),
             FilledButton.tonalIcon(
               onPressed: onPonovo,

@@ -17,7 +17,17 @@ class MojiNaloziScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final bloc = context.read<MojiNaloziBloc>();
     return Scaffold(
-      appBar: AppBar(title: const Text('Moji nalozi'), actions: const [_MeniZaDemo()]),
+      appBar: AppBar(
+        title: const Text('Moji nalozi'),
+        actions: [
+          IconButton(
+            tooltip: 'Osveži',
+            onPressed: () => bloc.add(const MojiNaloziZatrazeni()),
+            icon: const Icon(Icons.refresh),
+          ),
+          const _MeniZaDemo(),
+        ],
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.go('/nalozi/novi'),
         icon: const Icon(Icons.add),
@@ -28,7 +38,10 @@ class MojiNaloziScreen extends StatelessWidget {
         listener: (context, state) => _prikaziObavestenje(context, (state as MojiNaloziUcitani).obavestenje!),
         builder: (context, state) => switch (state) {
           MojiNaloziUcitavanje() => const PrikazUcitavanja(),
-          MojiNaloziGreska() => PrikazGreske(onPonovo: () => bloc.add(const MojiNaloziZatrazeni())),
+          MojiNaloziGreska(:final uzrok) => PrikazGreske(
+            uzrok: uzrok,
+            onPonovo: () => bloc.add(const MojiNaloziZatrazeni()),
+          ),
           MojiNaloziPrazno() => PrazanPrikaz(
             naslov: 'Još nemate radnih naloga.',
             akcija: FilledButton.tonal(
@@ -57,7 +70,7 @@ void _prikaziObavestenje(BuildContext context, MojiNaloziObavestenje obavestenje
     NalogNapravljen(:final nalog) => 'Uređaj je prijavljen, broj naloga ${nalog.id.value}.',
     OdgovorSacuvan(:final nalog) => nalog.stanje is UPopravci ? 'Ponuda je prihvaćena.' : 'Ponuda je odbijena.',
     AkcijaOdbijena(:final greska) => greska.poruka,
-    AkcijaNijeUspela() => 'Zahtev nije uspeo. Pokušajte ponovo.',
+    AkcijaNijeUspela(:final uzrok) => porukaNeuspeha(uzrok),
   };
   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(poruka)));
   context.read<MojiNaloziBloc>().add(const ObavestenjePrikazano());
@@ -125,6 +138,8 @@ class _MeniZaDemo extends StatelessWidget {
         switch (izbor) {
           case 'osvezi':
             bloc.add(const MojiNaloziZatrazeni());
+          case 'odjava':
+            context.read<SesijaBloc>().add(const OdjavaZatrazena());
           case 'greska':
             lazni?.neuspesniZahtevi = 1;
             javi('Sledeći zahtev neće uspeti.');
@@ -135,6 +150,7 @@ class _MeniZaDemo extends StatelessWidget {
       },
       itemBuilder: (context) => [
         const PopupMenuItem(value: 'osvezi', child: Text('Osveži')),
+        const PopupMenuItem(value: 'odjava', child: Text('Odjavi se')),
         if (lazni != null) ...[
           const PopupMenuItem(value: 'greska', child: Text('Simuliraj grešku sledećeg zahteva')),
           const PopupMenuItem(value: 'prazno', child: Text('Prikaži prazan odgovor')),

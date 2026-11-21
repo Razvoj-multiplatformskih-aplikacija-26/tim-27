@@ -1,5 +1,6 @@
 import 'package:backoffice/app.dart';
 import 'package:backoffice/dependencies.dart';
+import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -77,5 +78,29 @@ void main() {
     await tester.tap(find.text('Pokušaj ponovo'));
     await tester.pumpAndSettle();
     expect(find.text('Broj'), findsOneWidget);
+  });
+
+  testWidgets('backoffice odbija prijavu klijenta i kaže zašto', (tester) async {
+    await pokreni(
+      tester,
+      zavisnosti: Zavisnosti.lazne(
+        kasnjenje: kasnjenje,
+        prijavljen: false,
+        korisnik: const Korisnik(id: 'k-1', ime: 'Ana Jovanović', uloga: Uloga.klijent),
+      ),
+    );
+    await tester.enterText(find.widgetWithText(TextField, 'Korisničko ime'), 'ana');
+    await tester.enterText(find.widgetWithText(TextField, 'Lozinka'), 'reboot-demo');
+    await tester.tap(find.text('Prijavi se'));
+    await tester.pumpAndSettle();
+    expect(find.text('Backoffice je za osoblje servisa. Klijenti koriste mobilnu aplikaciju.'), findsOneWidget);
+    expect(find.text('Broj'), findsNothing);
+  });
+
+  testWidgets('odjava vraća na prijavu', (tester) async {
+    await pokreni(tester);
+    await tester.tap(find.byTooltip('Odjavi se'));
+    await tester.pumpAndSettle();
+    expect(find.text('Odjavili ste se.'), findsOneWidget);
   });
 }

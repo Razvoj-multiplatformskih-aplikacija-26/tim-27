@@ -61,7 +61,7 @@ class _TablaScreenState extends State<TablaScreen> {
         AkcijaOsoblja.otkazi => 'Nalog ${nalog.id.value} je otkazan.',
       },
       AkcijaTableOdbijena(:final greska) => greska.poruka,
-      AkcijaTableNijeUspela() => 'Izmena nije sačuvana. Pokušajte ponovo.',
+      AkcijaTableNijeUspela(:final uzrok) => porukaNeuspeha(uzrok),
     };
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(poruka)));
     _bloc.add(const ObavestenjeTablePrikazano());
@@ -80,7 +80,7 @@ class _TablaScreenState extends State<TablaScreen> {
   @override
   Widget build(BuildContext context) {
     final lazni = context.read<Zavisnosti>().lazniNalozi;
-    final serviser = context.read<Zavisnosti>().serviser;
+    final serviser = _bloc.serviser;
     return Shortcuts(
       shortcuts: precice,
       child: Actions(
@@ -120,6 +120,11 @@ class _TablaScreenState extends State<TablaScreen> {
                   onPressed: () => prikaziPrecice(context),
                   icon: const Icon(Icons.keyboard_outlined),
                 ),
+                IconButton(
+                  tooltip: 'Odjavi se',
+                  onPressed: () => context.read<SesijaBloc>().add(const OdjavaZatrazena()),
+                  icon: const Icon(Icons.logout),
+                ),
                 if (lazni != null)
                   PopupMenuButton<String>(
                     tooltip: 'Demo',
@@ -137,7 +142,10 @@ class _TablaScreenState extends State<TablaScreen> {
               listener: (context, state) => _prikaziObavestenje((state as TablaUcitana).obavestenje!),
               builder: (context, state) => switch (state) {
                 TablaUcitavanje() => const PrikazUcitavanja(),
-                TablaGreska() => PrikazGreske(onPonovo: () => _bloc.add(const TablaZatrazena())),
+                TablaGreska(:final uzrok) => PrikazGreske(
+                  uzrok: uzrok,
+                  onPonovo: () => _bloc.add(const TablaZatrazena()),
+                ),
                 TablaPrazna() => PrazanPrikaz(
                   naslov: 'U servisu trenutno nema radnih naloga.',
                   akcija: FilledButton.tonal(

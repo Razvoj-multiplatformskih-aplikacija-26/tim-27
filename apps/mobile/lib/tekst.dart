@@ -1,3 +1,4 @@
+import 'package:blocs/blocs.dart';
 import 'package:domain/domain.dart';
 
 // Tekstovi na srpskom koje bira aplikacija. Domen vraća samo tip greške ili stanja.
@@ -10,7 +11,7 @@ extension PorukaGreske on DomenskaGreska {
     NazivUredjajaObavezan() => 'Unesite marku i model uređaja.',
     NeispravanIznos() => 'Iznos ponude nije ispravan.',
     OpisPonudeObavezan() => 'Ponuda mora imati opis.',
-    PreviseAktivnihNaloga() => 'Serviser već ima $maksAktivnihNaloga aktivnih naloga.',
+    PreviseAktivnihNaloga(:final granica) => 'Serviser već ima $granica aktivnih naloga, koliko je najviše dozvoljeno.',
     RokZaOdgovorIstekao() => 'Rok od 48 sati za odgovor na ponudu je istekao.',
     NemaPonudeZaOdgovor() => 'Ovaj nalog ne čeka vaš odgovor na ponudu.',
     NalogVecPreuzet() => 'Nalog je već preuzeo drugi serviser.',
@@ -57,3 +58,19 @@ String dinari(int iznos) {
   }
   return '${grupe.join('.')} RSD';
 }
+
+String porukaOdjave(RazlogOdjave razlog) => switch (razlog) {
+  RazlogOdjave.odjava => 'Odjavili ste se.',
+  RazlogOdjave.istekla => 'Prijava je istekla. Prijavite se ponovo.',
+  RazlogOdjave.pogresniPodaci => 'Pogrešno korisničko ime ili lozinka.',
+  RazlogOdjave.pogresnaAplikacija => 'Mobilna aplikacija je za klijente servisa. Osoblje radi u backoffice-u.',
+  RazlogOdjave.serverNedostupan => 'Server nije dostupan. Proverite vezu i pokušajte ponovo.',
+};
+
+/// Poruka kada zahtev nije stigao do kraja; bez tehničkog teksta.
+String porukaNeuspeha(Object uzrok) => switch (uzrok) {
+  GreskaRepozitorijuma(vrsta: VrstaGreske.odbijeno) => 'Server je odbio ovu radnju. Podaci su ponovo učitani.',
+  GreskaRepozitorijuma(vrsta: VrstaGreske.nedostupan) => 'Server nije dostupan. Proverite vezu i pokušajte ponovo.',
+  GreskaRepozitorijuma(vrsta: VrstaGreske.prijavaIstekla) => 'Prijava je istekla.',
+  _ => 'Zahtev nije uspeo. Pokušajte ponovo.',
+};

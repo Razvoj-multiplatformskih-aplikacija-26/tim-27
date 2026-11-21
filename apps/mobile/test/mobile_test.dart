@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/app.dart';
+import 'package:mobile/data/lazne_sesije.dart';
 import 'package:mobile/dependencies.dart';
 
 void main() {
@@ -60,5 +61,37 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('HP EliteBook 840'), findsOneWidget);
     expect(find.text('Moji nalozi'), findsOneWidget);
+  });
+
+  testWidgets('prijava: pogrešna lozinka, pa ulaz, pa odjava', (tester) async {
+    await tester.pumpWidget(RebootApp(zavisnosti: Zavisnosti.lazne(kasnjenje: kasnjenje, prijavljen: false)));
+    await tester.pumpAndSettle();
+    expect(find.text('Prijavi se'), findsOneWidget);
+
+    await tester.enterText(find.widgetWithText(TextField, 'Korisničko ime'), 'ana');
+    await tester.enterText(find.widgetWithText(TextField, 'Lozinka'), 'pogresna');
+    await tester.tap(find.text('Prijavi se'));
+    await tester.pumpAndSettle();
+    expect(find.text('Pogrešno korisničko ime ili lozinka.'), findsOneWidget);
+
+    await tester.enterText(find.widgetWithText(TextField, 'Lozinka'), 'reboot-demo');
+    await tester.tap(find.text('Prijavi se'));
+    await tester.pumpAndSettle();
+    expect(find.text('Moji nalozi'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Više'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Odjavi se'));
+    await tester.pumpAndSettle();
+    expect(find.text('Odjavili ste se.'), findsOneWidget);
+  });
+
+  testWidgets('istekla prijava vraća na prijavu i kaže zašto', (tester) async {
+    final zavisnosti = Zavisnosti.lazne(kasnjenje: kasnjenje);
+    await tester.pumpWidget(RebootApp(zavisnosti: zavisnosti));
+    await tester.pumpAndSettle();
+    (zavisnosti.sesije as LazneSesije).istekni();
+    await tester.pumpAndSettle();
+    expect(find.text('Prijava je istekla. Prijavite se ponovo.'), findsOneWidget);
   });
 }

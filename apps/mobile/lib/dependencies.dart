@@ -1,22 +1,39 @@
+import 'package:api_client/api_client.dart';
 import 'package:blocs/blocs.dart';
 import 'package:domain/domain.dart';
 
+import 'data/lazne_sesije.dart';
 import 'data/lazni_nalozi.dart';
 import 'data/pocetni_podaci.dart';
 
-/// Jedino mesto gde se bira implementacija porta. Ekrani znaju samo za NalogRepository.
+/// Jedino mesto gde se bira implementacija portova. Ekrani i Blocovi znaju samo za
+/// NalogRepository i SesijaRepository, pa rade isto nad serverom i nad lažnim podacima.
 final class Zavisnosti {
-  const Zavisnosti({required this.nalozi, required this.klijent, this.lazniNalozi});
+  const Zavisnosti({required this.nalozi, required this.sesije, this.lazniNalozi});
 
-  factory Zavisnosti.lazne({Duration kasnjenje = const Duration(milliseconds: 800)}) {
-    final lazni = LazniNalozi(kasnjenje: kasnjenje);
-    return Zavisnosti(nalozi: lazni, klijent: prijavljeniKlijent, lazniNalozi: lazni);
+  factory Zavisnosti.server({required Uri adresa, required TokenStore tokeni}) {
+    final api = ApiKlijent(adresa: adresa, tokeni: tokeni);
+    return Zavisnosti(nalozi: HttpNalogRepository(api), sesije: HttpSesijaRepository(api));
   }
 
-  final NalogRepository nalozi;
+  factory Zavisnosti.lazne({Duration kasnjenje = const Duration(milliseconds: 800), bool prijavljen = true}) {
+    final lazni = LazniNalozi(kasnjenje: kasnjenje);
+    return Zavisnosti(
+      nalozi: lazni,
+      sesije: LazneSesije(korisnik: prijavljeniKorisnik, prijavljen: prijavljen),
+      lazniNalozi: lazni,
+    );
+  }
 
-  /// KT1: aplikacija radi kao jedan prijavljeni klijent; prijava stiže u KT2.
-  final Klijent klijent;
+  static final prijavljeniKorisnik = Korisnik(
+    id: prijavljeniKlijent.id.value,
+    ime: prijavljeniKlijent.ime,
+    uloga: Uloga.klijent,
+    telefon: prijavljeniKlijent.telefon,
+  );
+
+  final NalogRepository nalozi;
+  final SesijaRepository sesije;
 
   /// Postoji samo uz lažnu implementaciju; služi za dugme koje izaziva grešku.
   final LazniNalozi? lazniNalozi;

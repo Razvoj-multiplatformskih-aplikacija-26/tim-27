@@ -24,7 +24,8 @@ class DetaljNalogaScreen extends StatelessWidget {
       body: BlocBuilder<MojiNaloziBloc, MojiNaloziState>(
         builder: (context, state) => switch (state) {
           MojiNaloziUcitavanje() => const PrikazUcitavanja(),
-          MojiNaloziGreska() => PrikazGreske(
+          MojiNaloziGreska(:final uzrok) => PrikazGreske(
+            uzrok: uzrok,
             onPonovo: () => context.read<MojiNaloziBloc>().add(const MojiNaloziZatrazeni()),
           ),
           MojiNaloziPrazno() => const PrazanPrikaz(naslov: 'Nalog nije pronađen.'),

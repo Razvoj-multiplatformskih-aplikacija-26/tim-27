@@ -4,7 +4,7 @@ import 'package:domain/domain.dart';
 import 'pocetni_podaci.dart' as podaci;
 
 /// Lažna implementacija porta: podaci u memoriji, sa kašnjenjem kao da idu preko mreže.
-/// U KT2 se menja implementacijom koja zove server, samo u dependencies.dart.
+/// Aplikacija nad serverom koristi HttpNalogRepository; izbor je samo u dependencies.dart.
 final class LazniNalozi implements NalogRepository {
   LazniNalozi({this.kasnjenje = const Duration(milliseconds: 800)}) : _nalozi = podaci.pocetniNalozi(DateTime.now());
 
@@ -49,14 +49,18 @@ final class LazniNalozi implements NalogRepository {
   }
 
   @override
-  Future<RadniNalog> sacuvaj(RadniNalog nalog) async {
+  Future<Rezultat<RadniNalog>> sacuvaj(RadniNalog nalog) async {
     await _mreza();
     _nalozi[_nalozi.indexWhere((n) => n.id == nalog.id)] = nalog;
-    return nalog;
+    return Uspeh(nalog);
   }
 
   @override
-  Future<RadniNalog> prijavi({required Klijent klijent, required Uredjaj uredjaj, required OpisKvara opisKvara}) async {
+  Future<Rezultat<RadniNalog>> prijavi({
+    required Klijent klijent,
+    required Uredjaj uredjaj,
+    required OpisKvara opisKvara,
+  }) async {
     await _mreza();
     final nalog = prijaviUredjaj(
       id: NalogId('RN-${_sledeciBroj++}'),
@@ -66,7 +70,7 @@ final class LazniNalozi implements NalogRepository {
       sada: DateTime.now(),
     );
     _nalozi.add(nalog);
-    return nalog;
+    return Uspeh(nalog);
   }
 
   @override
