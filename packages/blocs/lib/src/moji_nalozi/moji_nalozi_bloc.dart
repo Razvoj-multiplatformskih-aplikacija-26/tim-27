@@ -30,15 +30,20 @@ final class MojiNaloziBloc extends Bloc<MojiNaloziEvent, MojiNaloziState> {
 
   Future<void> _naPrijavu(UredjajPrijavljen event, Emitter<MojiNaloziState> emit) async {
     try {
-      final nalog = await repozitorijum.prijavi(klijent: klijent, uredjaj: event.uredjaj, opisKvara: event.opisKvara);
-      await _ucitaj(emit, obavestenje: NalogNapravljen(nalog));
+      final rezultat = await repozitorijum.prijavi(
+        klijent: klijent,
+        uredjaj: event.uredjaj,
+        opisKvara: event.opisKvara,
+      );
+      await _ucitaj(
+        emit,
+        obavestenje: switch (rezultat) {
+          Uspeh(:final vrednost) => NalogNapravljen(vrednost),
+          Neuspeh(:final greska) => AkcijaOdbijena(greska),
+        },
+      );
     } on Exception catch (uzrok) {
-      final trenutno = state;
-      if (trenutno is MojiNaloziUcitani) {
-        emit(trenutno.saObavestenjem(AkcijaNijeUspela(uzrok)));
-      } else {
-        emit(MojiNaloziGreska(uzrok));
-      }
+      await _posleGreske(emit, uzrok);
     }
   }
 
@@ -49,18 +54,38 @@ final class MojiNaloziBloc extends Bloc<MojiNaloziEvent, MojiNaloziState> {
     try {
       final nalog = await repozitorijum.nadji(event.id);
       if (nalog == null) {
-        emit(trenutno.saObavestenjem(const AkcijaOdbijena(NalogNijePronadjen())));
+        await _ucitaj(emit, obavestenje: const AkcijaOdbijena(NalogNijePronadjen()));
         return;
       }
+      // Prvo isto pravilo proverava aplikacija, a server ga proverava ponovo pre upisa.
       switch (odgovoriNaPonudu(nalog, klijent: klijent, prihvata: event.prihvata, sada: sada())) {
         case Uspeh(:final vrednost):
-          final sacuvan = await repozitorijum.sacuvaj(vrednost);
-          await _ucitaj(emit, obavestenje: OdgovorSacuvan(sacuvan));
+          await _ucitaj(
+            emit,
+            obavestenje: switch (await repozitorijum.sacuvaj(vrednost)) {
+              Uspeh(:final vrednost) => OdgovorSacuvan(vrednost),
+              Neuspeh(:final greska) => AkcijaOdbijena(greska),
+            },
+          );
         case Neuspeh(:final greska):
           emit(trenutno.saObavestenjem(AkcijaOdbijena(greska)));
       }
     } on Exception catch (uzrok) {
+      await _posleGreske(emit, uzrok, prethodno: trenutno);
+    }
+  }
+
+  /// Odbijen poziv: prikaži razlog i ponovo učitaj podatke. Nedostupan server: samo javi.
+  Future<void> _posleGreske(Emitter<MojiNaloziState> emit, Exception uzrok, {MojiNaloziUcitani? prethodno}) async {
+    if (uzrok is GreskaRepozitorijuma && uzrok.vrsta == VrstaGreske.odbijeno) {
+      await _ucitaj(emit, obavestenje: AkcijaNijeUspela(uzrok));
+      return;
+    }
+    final trenutno = prethodno ?? state;
+    if (trenutno is MojiNaloziUcitani) {
       emit(trenutno.saObavestenjem(AkcijaNijeUspela(uzrok)));
+    } else {
+      emit(MojiNaloziGreska(uzrok));
     }
   }
 

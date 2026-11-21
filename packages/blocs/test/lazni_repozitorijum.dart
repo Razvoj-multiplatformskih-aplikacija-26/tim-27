@@ -27,6 +27,12 @@ final class LazniRepozitorijum implements NalogRepository {
   final List<RadniNalog> _nalozi;
   int neuspesnihZahteva = 0;
 
+  /// Sledeće čuvanje server odbija ovom greškom (kao da je drugi klijent stigao prvi).
+  DomenskaGreska? odbijSledece;
+
+  /// Promena koju je u međuvremenu napravio drugi klijent.
+  void promeniSpolja(RadniNalog nalog) => _nalozi[_nalozi.indexWhere((n) => n.id == nalog.id)] = nalog;
+
   void _proveri() {
     if (neuspesnihZahteva > 0) {
       neuspesnihZahteva--;
@@ -53,14 +59,22 @@ final class LazniRepozitorijum implements NalogRepository {
   }
 
   @override
-  Future<RadniNalog> sacuvaj(RadniNalog nalog) async {
+  Future<Rezultat<RadniNalog>> sacuvaj(RadniNalog nalog) async {
     _proveri();
+    if (odbijSledece case final greska?) {
+      odbijSledece = null;
+      return Neuspeh(greska);
+    }
     _nalozi[_nalozi.indexWhere((n) => n.id == nalog.id)] = nalog;
-    return nalog;
+    return Uspeh(nalog);
   }
 
   @override
-  Future<RadniNalog> prijavi({required Klijent klijent, required Uredjaj uredjaj, required OpisKvara opisKvara}) async {
+  Future<Rezultat<RadniNalog>> prijavi({
+    required Klijent klijent,
+    required Uredjaj uredjaj,
+    required OpisKvara opisKvara,
+  }) async {
     _proveri();
     final novi = prijaviUredjaj(
       id: NalogId('novi-${_nalozi.length}'),
@@ -70,7 +84,7 @@ final class LazniRepozitorijum implements NalogRepository {
       sada: sada,
     );
     _nalozi.add(novi);
-    return novi;
+    return Uspeh(novi);
   }
 
   @override

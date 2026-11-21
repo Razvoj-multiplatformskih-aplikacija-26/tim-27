@@ -43,7 +43,7 @@ final class TablaNalogaBloc extends Bloc<TablaNalogaEvent, TablaNalogaState> {
       final sviNalozi = await repozitorijum.sviNalozi();
       final nalog = sviNalozi.where((n) => n.id == event.id).firstOrNull;
       if (nalog == null) {
-        emit(trenutno.copyWith(obavestenje: () => const AkcijaTableOdbijena(NalogNijePronadjen())));
+        await _ucitaj(emit, obavestenje: const AkcijaTableOdbijena(NalogNijePronadjen()));
         return;
       }
       final rezultat = switch (event.akcija) {
@@ -58,13 +58,25 @@ final class TablaNalogaBloc extends Bloc<TablaNalogaEvent, TablaNalogaState> {
       };
       switch (rezultat) {
         case Uspeh(:final vrednost):
-          final sacuvan = await repozitorijum.sacuvaj(vrednost);
-          await _ucitaj(emit, izabraniId: trenutno.izabraniId, obavestenje: AkcijaTableUspela(event.akcija, sacuvan));
+          // Server ponovo proverava ista pravila; kada je drugi klijent stigao prvi, odbija promenu.
+          await _ucitaj(
+            emit,
+            izabraniId: trenutno.izabraniId,
+            obavestenje: switch (await repozitorijum.sacuvaj(vrednost)) {
+              Uspeh(:final vrednost) => AkcijaTableUspela(event.akcija, vrednost),
+              Neuspeh(:final greska) => AkcijaTableOdbijena(greska),
+            },
+          );
         case Neuspeh(:final greska):
-          emit(trenutno.copyWith(obavestenje: () => AkcijaTableOdbijena(greska)));
+          emit(trenutno.copyWith(nalogUToku: () => null, obavestenje: () => AkcijaTableOdbijena(greska)));
       }
     } on Exception catch (uzrok) {
-      emit(trenutno.copyWith(obavestenje: () => AkcijaTableNijeUspela(uzrok)));
+      if (uzrok is GreskaRepozitorijuma && uzrok.vrsta == VrstaGreske.odbijeno) {
+        // Server je odbio radnju pravilom koje ova verzija ne poznaje: razlog i sveži podaci.
+        await _ucitaj(emit, izabraniId: trenutno.izabraniId, obavestenje: AkcijaTableNijeUspela(uzrok));
+      } else {
+        emit(trenutno.copyWith(nalogUToku: () => null, obavestenje: () => AkcijaTableNijeUspela(uzrok)));
+      }
     }
   }
 

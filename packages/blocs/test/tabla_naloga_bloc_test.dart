@@ -82,7 +82,7 @@ void main() {
       isA<TablaUcitana>().having(
         (s) => s.obavestenje,
         'obaveštenje',
-        const AkcijaTableOdbijena(PreviseAktivnihNaloga(5)),
+        const AkcijaTableOdbijena(PreviseAktivnihNaloga(5, granica: 5)),
       ),
     ],
   );
@@ -97,5 +97,24 @@ void main() {
     },
     skip: 3,
     expect: () => [isA<TablaUcitana>().having((s) => s.obavestenje, 'obaveštenje', isA<AkcijaTableNijeUspela>())],
+  );
+
+  blocTest<TablaNalogaBloc, TablaNalogaState>(
+    'kada server odbije preuzimanje, tabla prikazuje razlog i ponovo se učitava',
+    build: () => napravi(LazniRepozitorijum([nalog('n-1')])),
+    act: (bloc) async {
+      await ucitaj(bloc);
+      final repozitorijum = bloc.repozitorijum as LazniRepozitorijum;
+      repozitorijum.odbijSledece = const NalogVecPreuzet();
+      repozitorijum.promeniSpolja(nalog('n-1', stanje: const Dijagnostika(), serviserId: const ServiserId('s-2')));
+      bloc.add(const AkcijaZatrazena(NalogId('n-1'), AkcijaOsoblja.preuzmi));
+    },
+    skip: 2,
+    expect: () => [
+      isA<TablaUcitana>().having((s) => s.nalogUToku, 'u toku', const NalogId('n-1')),
+      isA<TablaUcitana>()
+          .having((s) => s.obavestenje, 'obaveštenje', const AkcijaTableOdbijena(NalogVecPreuzet()))
+          .having((s) => s.nalogUToku, 'u toku', isNull),
+    ],
   );
 }
