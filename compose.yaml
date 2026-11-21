@@ -1,0 +1,41 @@
+# Podiže bazu i server jednom komandom: docker compose up --build (posle cp .env.example .env).
+# Server pri pokretanju primenjuje migracije iz apps/server/migrations i unosi početne podatke.
+name: reboot
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-reboot}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Prvo kopirajte .env.example u .env}
+      POSTGRES_DB: ${POSTGRES_DB:-reboot}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5435}:5432"
+    volumes:
+      - db-podaci:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  server:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-reboot}:${POSTGRES_PASSWORD:?Prvo kopirajte .env.example u .env}@db:5432/${POSTGRES_DB:-reboot}?sslmode=disable
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8081}
+      SESSION_TTL_MINUTES: ${SESSION_TTL_MINUTES:-480}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      DEMO_PASSWORD: ${DEMO_PASSWORD:?Prvo kopirajte .env.example u .env}
+      JWT_SECRET: ${JWT_SECRET:?Prvo kopirajte .env.example u .env}
+      SMS_API_KEY: ${SMS_API_KEY:-}
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db-podaci:
